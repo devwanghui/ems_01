@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE struts PUBLIC
+	"-//Apache Software Foundation//DTD Struts Configuration 2.3//EN"
+	"http://struts.apache.org/dtds/struts-2.3.dtd">
+
+<struts>  
+    <constant name="struts.devMode" value="true" />
+    
+    <constant name="struts.custom.i18n.resources" value="i18n"></constant>
+    <!-- 设置主题为simple -->
+	<constant name="struts.ui.theme" value="simple"></constant>
+    <package name="default" namespace="/" extends="json-default">
+    	<interceptors>
+    		<interceptor name="cleanInterceptor" class="com.atguigu.ems.interceptors.FileCleanInterceptor"></interceptor>
+    		
+    		<interceptor-stack name="mySrack">
+    			<interceptor-ref name="cleanInterceptor"></interceptor-ref>
+    			<interceptor-ref name="paramsPrepareParamsStack">
+    			
+    				<param name="fileUpload.allowedExtensions">xls, .xlsx</param>
+					<param name="chain.copyFieldErrors">true</param>
+					<param name="alwaysInvokePrepare">false</param>
+				</interceptor-ref>
+    		</interceptor-stack>
+    	</interceptors>
+    	
+    	<default-interceptor-ref name="mySrack"></default-interceptor-ref>
+    	
+    	<action name="emp_upload" >
+    		<result>/WEB-INF/views/emps/upload.jsp</result>
+    	</action>
+    	<action name="emp-upload" 
+    		class="com.atguigu.ems.action.EmployeeAction"
+    		method="upload">
+    		<result name="input">/WEB-INF/views/emps/upload.jsp</result>
+    	</action>
+    	
+ 		<action name="emp-*" class="com.atguigu.ems.action.EmployeeAction"
+ 				method="{1}">
+ 				<!--异常映射  -->
+ 				<exception-mapping result="input" 
+ 					exception="com.atguigu.ems.exceptions.EmployeeUnableException"></exception-mapping>
+ 				<exception-mapping result="input" 
+ 					exception="com.atguigu.ems.exceptions.LoginNameNotFoundException"></exception-mapping>
+ 				<exception-mapping result="input" 
+ 					exception="com.atguigu.ems.exceptions.LoginNameNotMatchPasswordExcrption"></exception-mapping>
+ 			
+ 				
+ 			<result name="emp-save-input" type="chain">
+				<param name="actionName">emp-input</param>
+			</result>
+ 			
+ 			 <result name="excel-result" type="stream"></result>
+ 			
+			<result name="emp-input">/WEB-INF/views/emps/input.jsp</result>
+			<result name="list2" type="json">
+				<param name="root">page</param>
+				
+				<!-- 
+					此处有两个需要注意的点，其一，在struts.xml配置时，
+					需要设置<package name="default" namespace="/" extends="json-default">
+					另外在获取content集合时的关联属性时，需设置<param name="excludeProperties">，
+					需要用类似content.*\.roles此种形式获取
+				 -->
+				<param name="excludeProperties">content.*\.roles,content.*\.department,content.*\.resume,content.*\.editor</param>
+			</result>
+			<result name="list">/WEB-INF/views/emps/list2.jsp</result>
+			<result name="input">/index.jsp</result>	
+			<result name="success">/WEB-INF/views/success.jsp</result>
+ 		</action>
+    </package>
+</struts>
